@@ -1,7 +1,8 @@
-menu = require("menu")
+instance = require("menu")
+menu     = nil
 
 love.load = ->
-    return
+    menu = instance!
 
 love.update = (dt) ->
     menu\update(dt)

@@ -1,12 +1,18 @@
 class Menu
 
     new: =>
-        @examples = { { require("examples.audio")!,   "Audio"   },
-                      { require("examples.canvas")!,  "Canvas"  },
-                      { require("examples.texture")!, "Texture" } }
+        @examples = {}
+
+        items = love.filesystem.getDirectoryItems("examples")
+        for item in *items
+            prettyName = item\sub(1, 1)\upper! .. item\sub(2)
+            table.insert(@examples, {require("examples.#{item}"), prettyName})
 
         @currentExample = nil
         @currentIndex = 1
+
+        love.graphics.setNewFont("assets/hack.ttf", 14)
+
 
     update: (dt) =>
         if @currentExample and @currentExample.update
@@ -19,7 +25,7 @@ class Menu
             for index, value in ipairs(@examples)
                 fmt = index
                 if index == @currentIndex
-                    fmt = "[#{index}]"
+                    fmt = "* [#{index}]"
                 love.graphics.print("#{fmt}: #{value[2]}", 8, 8 + (index - 1) * 16)
 
     gamepadpressed: (button) =>
@@ -33,6 +39,6 @@ class Menu
             elseif button == "dpup"
                 @currentIndex = math.max(@currentIndex - 1, 1)
             elseif button == "a"
-                @currentExample = @examples[@currentIndex][1]
+                @currentExample = @examples[@currentIndex][1]!
 
-return Menu!
+return Menu
