@@ -1,0 +1,83 @@
+class Data
+
+    @CompressionString = "Hello World!"
+    @ExpectedPath = "expected/data"
+
+    @ExpectedLz4     = love.filesystem.read("#{@@ExpectedPath}/compressStringLz4.txt")
+    @ExpectedZlib    = love.filesystem.read("#{@@ExpectedPath}/compressStringZlib.txt")
+    @ExpectedGzip    = love.filesystem.read("#{@@ExpectedPath}/compressStringGzip.txt")
+    @ExpectedDeflate = love.filesystem.read("#{@@ExpectedPath}/compressStringDeflate.txt")
+
+    -- Compress as String --
+
+    testCompressStringLz4: =>
+        data = love.data.compress("string", "lz4", @@CompressionString)
+
+        return data == @@ExpectedLz4
+
+    testCompressStringZlib: =>
+        data = love.data.compress("string", "zlib", @@CompressionString)
+
+        return data == @@ExpectedZlib
+
+    testCompressStringGzip: =>
+        data = love.data.compress("string", "gzip", @@CompressionString)
+
+        return data == @@ExpectedGzip
+
+    testCompressStringDeflate: =>
+        data = love.data.compress("string", "deflate", @@CompressionString)
+
+        return data == @@ExpectedDeflate
+
+    -- Compress as Data --
+
+    testCompressDataLz4: =>
+        data = love.data.compress("data", "lz4", @@CompressionString)
+
+        return data\getString! == @@ExpectedLz4
+
+    testCompressDataZlib: =>
+        data = love.data.compress("data", "zlib", @@CompressionString)
+
+        return data\getString! == @@ExpectedZlib
+
+    testCompressDataGzip: =>
+        data = love.data.compress("data", "gzip", @@CompressionString)
+
+        return data\getString! == @@ExpectedGzip
+
+    testCompressDataDeflate: =>
+        data = love.data.compress("data", "deflate", @@CompressionString)
+
+        return data\getString! == @@ExpectedDeflate
+
+    testGetSize: =>
+        data = love.data.newByteData(@@CompressionString)
+
+        return data\getSize! == 12
+
+    testGetString: =>
+        data = love.data.newByteData(@@CompressionString)
+
+        return data\getString! == @@CompressionString
+
+    testNewByteDataSize: =>
+        data = love.data.newByteData(420)
+
+        return data\getSize! == 420
+
+    testNewByteDataCopy: =>
+        data = love.data.newByteData(@@CompressionString)
+        copy = love.data.newByteData(data, 6, 5)
+
+        return copy\getString! == "World"
+
+    testNewDataView: =>
+        data = love.data.newByteData(@@CompressionString)
+        view = love.data.newDataView(data, 0, data\getSize!)
+
+        return view\getString! == @@CompressionString and view\getSize! == #@@CompressionString
+
+
+return Data

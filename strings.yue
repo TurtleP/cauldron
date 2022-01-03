@@ -1,0 +1,25 @@
+strings = {}
+
+strings.AppName = "lovepotion"
+strings.AppType = "Test Suite"
+
+name, version, vendor, device = love.graphics.getRendererInfo()
+
+strings.Information = "[System Information]
+ Operating System: #{love.system.getOS!}
+ Firmware Version: #{love.system.getVersion!}
+ Region:           #{love.system.getRegion!}
+ Model:            #{love.system.getModel!}
+ User Name:        #{love.system.getUsername!}
+ Battery Level:    %s
+[Renderer Info]
+ Device: #{device}
+ Name:   #{name} (#{version})
+ Vendor: #{vendor}
+[Test Suite]:
+ Current Module: %s
+ Test Results: %d/%d (%s)"
+
+strings.Instructions = "L/R: Select Module * A: Run Module * Start: Quit"
+
+return strings

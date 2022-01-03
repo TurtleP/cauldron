@@ -1,0 +1,83 @@
+ne5st = require("libraries.nest")\init({mode: "ctr", emulateJoystick: true})
+
+font, font_quads = nil, {}
+scale = 1
+selection = 1
+
+love.graphics.setDefaultFilter("nearest", "nearest")
+
+if love._os ~= "Horizon" then
+    love.system.getVersion = ->
+        "Unknown"
+
+    love.system.getRegion = ->
+        "Unknown"
+
+    love.system.getModel = ->
+        "Unknown"
+
+    love.system.getUsername = ->
+        "Unknown"
+
+strings = require("strings")
+test_suite = require("suite")
+terminal   = require("terminal")
+
+love.load = ->
+    font = love.graphics.newImage("graphics/font.png")
+    glyphs = "0123456789abcdefghijklmnopqrstuvwxyz.:/,'C-_>X !{}?[]*()=%"
+
+    for index = 1, #glyphs do
+        glyph_value = glyphs\sub(index, index)
+        font_quads[glyph_value] = love.graphics.newQuad((index - 1) * 8, 0, 8, 8, font)
+
+draw_text = (text, x, y) ->
+    text = tostring(text)\lower!
+
+    x = x ?? 0
+    y = y ?? 0
+
+    start_x = x
+    glyph_width = 8 * scale
+
+    for index = 1, #text do
+        glyph = text\sub(index, index)
+
+        if glyph == "\n" or glyph == "|" then
+            x = (start_x - (index * glyph_width))
+            y += glyph_width
+        else
+            if not font_quads[glyph] then
+                return error("Glyph '#{glyph}' does not exist!")
+            else
+                love.graphics.draw(font, font_quads[glyph], x + (index - 1) * glyph_width, y, 0, scale, scale)
+
+    y + glyph_width
+
+love.draw = (screen) ->
+    if screen ~= "bottom" then
+        draw_text(terminal\createHeader(strings.AppName))
+
+        battery_info = table.concat({love.system.getPowerInfo!}, ", ") .. "%"
+        current_module = test_suite\modules![selection]
+
+        passing_count = test_suite\passing!
+        total_tests_count = test_suite\totalTests(selection)
+        overall_status = test_suite\status!
+
+        draw_text(strings.Information\format(battery_info, current_module, passing_count, total_tests_count, overall_status), 0, 8)
+        draw_text(terminal\createHeader!, 0, terminal\height! - 24)
+
+        instructions_position = terminal\calculate(strings.Instructions)
+        draw_text(strings.Instructions, instructions_position, terminal\height! - 16)
+        draw_text(terminal\createHeader(strings.AppType), 0, terminal\height! - 8)
+
+love.gamepadpressed = (_, button) ->
+    if button == "leftshoulder" then
+        selection = math.max(selection - 1, 1)
+    elseif button == "rightshoulder" then
+        selection = math.min(selection + 1, #test_suite\modules!)
+    elseif button == "start" then
+        love.event.quit!
+    elseif button == "a" then
+        test_suite\run(selection)

@@ -1,0 +1,18 @@
+
+# [string] @source  : Game source directory; relative to the config
+#                     file. Default: "".
+# [string] @build   : Output directory for compilation; relative to the config
+#                     file. When false, it will use current directory.
+#                     Default: "build".
+# [bool]   @clean   : Clean the build artifacts and directory before a new build.
+#                     This helps reduce chances of cluttering the built data.
+#                     Default: false.
+# [array]  @exclude : List of strings of files to exclude.
+#
+# [string] @compiler : Compiler to use. Options are "moonscript" or "yue".
+[options]
+source = ""
+build = "build"
+clean = false
+exclude = [".*.gitignore", ".*.vscode"]
+compiler = "yue"

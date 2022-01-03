@@ -1,0 +1,29 @@
+class Terminal
+
+    new: =>
+        @_width  = love.graphics.getWidth("left")
+        @_height = love.graphics.getHeight!
+
+    createHeader: (text) =>
+        text = text ?? ""
+        width = #text * 8
+
+        length = ((@_width - width) * 0.5) / 8
+        parts = string.rep("=", length)
+
+        return "#{parts}#{text}#{parts}"
+
+    calculate: (text) =>
+        text = text ?? ""
+        width = #text * 8
+
+        length = ((@_width - width) * 0.5)
+        return length
+
+    width: =>
+        @_width
+
+    height: =>
+        @_height
+
+return Terminal!

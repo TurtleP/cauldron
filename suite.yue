@@ -1,0 +1,82 @@
+class TestSuite
+
+    @Status = {
+        STATUS_PASSED: "Passed",
+        STATUS_FAILED: "Failed",
+        STATUS_UNKNOWN: "Unknown"
+    }
+
+    new: =>
+        files = love.filesystem.getDirectoryItems("tests")
+
+        @classes = [require("tests." .. item\gsub(".lua", "")) for item in *files]
+
+        @class_names = {}
+        for class_table in *@classes do
+            table.insert(@class_names, class_table.__name)
+
+        table.insert(@class_names, 1, "all")
+
+        for index = 1, #@classes do
+            @classes[index] = @classes[index]!
+
+        @results = {}
+
+        @_passing = 0
+        @_total   = 0
+        @_running = false
+
+        @log = love.filesystem.newFile("log.txt", "w")
+
+    modules: =>
+        @class_names
+
+    passing: =>
+        @_passing
+
+    totalTests: (index) =>
+        @_total = 0
+
+        if index == 1 then
+            return 0
+        else
+            instance = getmetatable(@classes[index - 1])
+            for name, value in pairs(instance) do
+                is_test = name\sub(1, 4) == "test"
+                if type(value) == "function" and is_test then
+                    @_total += 1
+
+        return @_total
+
+    status: =>
+        if not @_running or @_total == 0 then
+            return @@Status.STATUS_UNKNOWN
+
+        if @passing! == @_total then
+            return @@Status.STATUS_PASSED
+        elseif @passing != @_total then
+            return @@Status.STATUS_FAILED
+
+    run: (index) =>
+        index = index ?? 1
+        passing, total = 0, 0
+        @_running = true
+
+        if index == 1 then
+            return
+        else
+            @log\write("[#{@class_names[index]}]\n")
+            instance = getmetatable(@classes[index - 1])
+            for name, value in pairs(instance)
+                is_test = name\sub(1, 4) == "test"
+                if type(value) == "function" and is_test then
+                    @log\write("  Executing: #{name}.. ")
+                    exec_status = @@Status.STATUS_PASSED
+                    if not value(instance) then
+                        exec_status = @@Status.STATUS_FAILED
+                    else
+                        @_passing += 1
+                    @log\write("#{exec_status}!\n")
+
+
+return TestSuite!
