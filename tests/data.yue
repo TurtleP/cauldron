@@ -8,6 +8,13 @@ class Data
     @ExpectedGzip    = love.filesystem.read("#{@@ExpectedPath}/compressStringGzip.txt")
     @ExpectedDeflate = love.filesystem.read("#{@@ExpectedPath}/compressStringDeflate.txt")
 
+    @ExpectedMd5    = love.filesystem.read("#{@@ExpectedPath}/stringmd5.txt")
+    @ExpectedSha1   = love.filesystem.read("#{@@ExpectedPath}/stringsha1.txt")
+    @ExpectedSha224 = love.filesystem.read("#{@@ExpectedPath}/stringsha224.txt")
+    @ExpectedSha256 = love.filesystem.read("#{@@ExpectedPath}/stringsha256.txt")
+    @ExpectedSha384 = love.filesystem.read("#{@@ExpectedPath}/stringsha384.txt")
+    @ExpectedSha512 = love.filesystem.read("#{@@ExpectedPath}/stringsha512.txt")
+
     -- Compress as String --
 
     testCompressStringLz4: =>
@@ -79,5 +86,34 @@ class Data
 
         return view\getString! == @@CompressionString and view\getSize! == #@@CompressionString
 
+    testHashStringMd5: =>
+        data = love.data.hash("md5", @@CompressionString)
+
+        return data == @@ExpectedMd5
+
+    testHashStringSha1: =>
+        data = love.data.hash("sha1", @@CompressionString)
+
+        return data == @@ExpectedSha1
+
+    testHashStringSha224: =>
+        data = love.data.hash("sha224", @@CompressionString)
+
+        return data == @@ExpectedSha224
+
+    testHashStringSha256: =>
+        data = love.data.hash("sha256", @@CompressionString)
+
+        return data == @@ExpectedSha256
+
+    testHashStringSha384: =>
+        data = love.data.hash("sha384", @@CompressionString)
+
+        return data == @@ExpectedSha384
+
+    testHashStringSha512: =>
+        data = love.data.hash("sha512", @@CompressionString)
+
+        return data == @@ExpectedSha512
 
 return Data
