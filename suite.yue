@@ -1,15 +1,17 @@
+global class Status
+    @STATUS_PASSED: "Passed",
+    @STATUS_FAILED: "Failed",
+    @STATUS_UNKNOWN: "Unknown"
+    @STATUS_RUNNING: "Running"
+
 class TestSuite
-
-    @Status = {
-        STATUS_PASSED: "Passed",
-        STATUS_FAILED: "Failed",
-        STATUS_UNKNOWN: "Unknown"
-    }
-
     new: =>
         files = love.filesystem.getDirectoryItems("tests")
 
-        @classes = [require("tests." .. item\gsub(".lua", "")) for item in *files]
+        @classes = {}
+        for item in *files
+            if item\sub(-4) == ".lua" then
+                table.insert(@classes, require("tests." .. item\gsub(".lua", "")))
 
         @class_names = {}
         for class_table in *@classes do
@@ -20,7 +22,9 @@ class TestSuite
         for index = 1, #@classes do
             @classes[index] = @classes[index]!
 
-        @results = {}
+        @functions = {}
+        @current = 1
+        @_sleep = 0
 
         @_passing = 0
         @_total   = 0
@@ -50,16 +54,41 @@ class TestSuite
 
     status: =>
         if not @_running or @_total == 0 then
-            return @@Status.STATUS_UNKNOWN
+            return Status.STATUS_UNKNOWN
+        elseif @_running then
+            if @_passing < @_total then
+                return Status.STATUS_RUNNING
 
         if @passing! == @_total then
-            return @@Status.STATUS_PASSED
-        elseif @passing != @_total then
-            return @@Status.STATUS_FAILED
+            return Status.STATUS_PASSED
+        elseif @passing! != @_total then
+            return Status.STATUS_FAILED
+
+    update: (dt) =>
+        if @_running then
+            if @_sleep > 0 then
+                @_sleep = math.max(@_sleep - dt, 0)
+
+            current_test = @functions[@current]
+            if @_sleep == 0
+                if @current <= #@functions then
+                    sleep, result = current_test.func(current_test.instance)
+                    status = "Passed"
+
+                    if result == true or type(sleep) == "boolean" and sleep then
+                        @_passing += 1
+                    else
+                        status = "Failed"
+
+                    @current += 1
+
+                    @log\write("  #{current_test.name}: #{status}!\n")
+                    @_sleep = type(sleep) == "number" and sleep or 1
+                else
+                    @_running = false
 
     run: (index) =>
         index = index ?? 1
-        passing, total = 0, 0
         @_running = true
 
         if index == 1 then
@@ -67,16 +96,11 @@ class TestSuite
         else
             @log\write("[#{@class_names[index]}]\n")
             instance = getmetatable(@classes[index - 1])
+
             for name, value in pairs(instance)
                 is_test = name\sub(1, 4) == "test"
                 if type(value) == "function" and is_test then
-                    @log\write("  Executing: #{name}.. ")
-                    exec_status = @@Status.STATUS_PASSED
-                    if not value(instance) then
-                        exec_status = @@Status.STATUS_FAILED
-                    else
-                        @_passing += 1
-                    @log\write("#{exec_status}!\n")
+                    table.insert(@functions, {instance: instance, func: value, name: name})
 
 
 return TestSuite!

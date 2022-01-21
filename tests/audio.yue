@@ -1,0 +1,104 @@
+macro try_catch = (f, args) ->
+    "pcall(#{f}, unpack(#{args}))"
+
+Timer = require("libraries.batteries.timer")
+
+class Audio
+
+    @StaticSource = love.audio.newSource("expected/audio/static.ogg", "static")
+    @StreamSource = love.audio.newSource("expected/audio/stream.ogg", "stream")
+
+    @EXPECTED_STATIC_DURATION = 1.2734240362812
+    @EXPECTED_STREAM_DURATION = 80.910666666667
+
+    testGetChannelCount: =>
+        @@StaticSource\getChannelCount! == 2
+
+    testGetStaticType: =>
+        @@StaticSource\getType! == "static"
+
+    testGetStreamType: =>
+        @@StreamSource\getType! == "stream"
+
+    testGetVolume: =>
+        @@StreamSource\getVolume! == 1.0
+
+    testGetVolumeLimits: =>
+        min, max = @@StaticSource\getVolumeLimits!
+
+        return min == 0.0 and max == 1.0
+
+    testIsLooping: =>
+        current = @@StreamSource\isLooping!
+        @@StreamSource\setLooping(true)
+        new     = @@StreamSource\isLooping!
+        @@StreamSource\setLooping(false)
+
+        return current == false and new == true
+
+    -- play does not return
+    -- this is a physical check
+    testPlay: =>
+       love.audio.play(@@StaticSource)
+
+       return 1.30, true
+
+    testPlayMultiple: =>
+        love.audio.play(@@StaticSource, @@StreamSource)
+
+        return 82.20, true
+
+    testPlayMultipleTable: =>
+        love.audio.play({@@StaticSource, @@StreamSource})
+
+        return 82.20, true
+
+    -- already tested in testIsLooping
+    testSetLooping: =>
+        @testIsLooping!
+
+    testSetVolume: =>
+        current = @@StaticSource\getVolume!
+        @@StaticSource\setVolume(0.5)
+        new     = @@StaticSource\getVolume!
+        @@StaticSource\setVolume(1.0)
+
+        return current == 1.0 and new == 0.5
+
+    testSetVolumeLimits: =>
+        current = {@@StreamSource\getVolumeLimits!}
+        @@StreamSource\setVolumeLimits(0.25, 0.75)
+        new     = {@@StreamSource\getVolumeLimits!}
+        passing = $try_catch(@@StreamSource\setVolumeLimits, {-420, 69})
+
+        return current[1] == 0.0 and current[2] == 1.0 and
+               new[1] == 0.25 and new[2] == 0.75 and passing == false
+
+    testStop: =>
+        love.audio.play(@@StreamSource)
+
+        timer = Timer(5, nil, () -> love.audio.stop!)
+
+        while not timer\expired! do
+            timer\update(love.timer.getDelta!)
+
+        return true
+
+    -- might be inaccurate?
+    testGetDuration: =>
+        return @@StaticSource\getDuration! == @@EXPECTED_STATIC_DURATION and
+               @@StreamSource\getDuration! == @@EXPECTED_STREAM_DURATION
+
+    testTell: =>
+        love.audio.play(@@StaticSource)
+        timer = Timer(0.5, nil, () -> return @@StaticSource\tell!)
+        position = 0
+
+        while not timer\expired! do
+            position = timer\update(love.timer.getDelta!)
+
+        return position == 0.5
+
+
+
+return Audio

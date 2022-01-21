@@ -27,10 +27,12 @@ class Data
 
         return data == @@ExpectedZlib
 
+    -- Since gzip uses OS ID in the header
+    -- we need to skip that byte
     testCompressStringGzip: =>
         data = love.data.compress("string", "gzip", @@CompressionString)
 
-        return data == @@ExpectedGzip
+        return data\sub(0x01, 0x08) == @@ExpectedGzip\sub(0x01, 0x08) and data\sub(0xB) == @@ExpectedGzip\sub(0xB)
 
     testCompressStringDeflate: =>
         data = love.data.compress("string", "deflate", @@CompressionString)
@@ -49,10 +51,13 @@ class Data
 
         return data\getString! == @@ExpectedZlib
 
+    -- Since gzip uses OS ID in the header
+    -- we need to skip that byte
     testCompressDataGzip: =>
         data = love.data.compress("data", "gzip", @@CompressionString)
+        string_value = data\getString!
 
-        return data\getString! == @@ExpectedGzip
+        return string_value\sub(0x01, 0x08) == @@ExpectedGzip\sub(0x01, 0x08) and string_value\sub(0xB) == @@ExpectedGzip\sub(0xB)
 
     testCompressDataDeflate: =>
         data = love.data.compress("data", "deflate", @@CompressionString)

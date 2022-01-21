@@ -6,16 +6,16 @@ class Terminal
 
     createHeader: (text) =>
         text = text ?? ""
-        width = #text * 8
+        width = #text * glyph_width
 
-        length = ((@_width - width) * 0.5) / 8
+        length = ((@_width - width) * 0.5) / glyph_width
         parts = string.rep("=", length)
 
         return "#{parts}#{text}#{parts}"
 
     calculate: (text) =>
         text = text ?? ""
-        width = #text * 8
+        width = #text * glyph_width
 
         length = ((@_width - width) * 0.5)
         return length

@@ -1,8 +1,16 @@
-ne5st = require("libraries.nest")\init({mode: "ctr", emulateJoystick: true})
+nest = require("libraries.nest")\init({mode: "ctr", emulateJoystick: true})
+utf8 = require("utf8")
 
 font, font_quads = nil, {}
 scale = 1
 selection = 1
+
+global glyph_width = 8 * scale
+
+progress_timer = 0
+progress_char = {"!", "@", "#", "$", "^", "&", "+", "?"}
+
+progress_index = 1
 
 love.graphics.setDefaultFilter("nearest", "nearest")
 
@@ -19,13 +27,13 @@ if love._os ~= "Horizon" then
     love.system.getUsername = ->
         "Unknown"
 
-strings = require("strings")
+strings    = require("strings")
 test_suite = require("suite")
 terminal   = require("terminal")
 
 love.load = ->
     font = love.graphics.newImage("graphics/font.png")
-    glyphs = "0123456789abcdefghijklmnopqrstuvwxyz.:/,'C-_>X !{}?[]*()=%"
+    glyphs = "0123456789abcdefghijklmnopqrstuvwxyz.:/,'C-_>X !{}?[]*()=%!@#$^&+?"
 
     for index = 1, #glyphs do
         glyph_value = glyphs\sub(index, index)
@@ -38,7 +46,6 @@ draw_text = (text, x, y) ->
     y = y ?? 0
 
     start_x = x
-    glyph_width = 8 * scale
 
     for index = 1, #text do
         glyph = text\sub(index, index)
@@ -48,11 +55,17 @@ draw_text = (text, x, y) ->
             y += glyph_width
         else
             if not font_quads[glyph] then
-                return error("Glyph '#{glyph}' does not exist!")
+                print("Glyph '#{glyph}' does not exist!")
             else
                 love.graphics.draw(font, font_quads[glyph], x + (index - 1) * glyph_width, y, 0, scale, scale)
 
     y + glyph_width
+
+love.update = (dt) ->
+    progress_timer = progress_timer + 8 * dt
+    progress_index = math.floor(progress_timer % #progress_char) + 1
+
+    test_suite\update(dt)
 
 love.draw = (screen) ->
     if screen ~= "bottom" then
@@ -65,7 +78,11 @@ love.draw = (screen) ->
         total_tests_count = test_suite\totalTests(selection)
         overall_status = test_suite\status!
 
-        draw_text(strings.Information\format(battery_info, current_module, passing_count, total_tests_count, overall_status), 0, 8)
+        status_value = overall_status
+        if overall_status == Status.STATUS_RUNNING then
+            status_value = progress_char[progress_index]
+
+        draw_text(strings.Information\format(battery_info, current_module, passing_count, total_tests_count, status_value), 0, 8)
         draw_text(terminal\createHeader!, 0, terminal\height! - 24)
 
         instructions_position = terminal\calculate(strings.Instructions)
@@ -81,3 +98,6 @@ love.gamepadpressed = (_, button) ->
         love.event.quit!
     elseif button == "a" then
         test_suite\run(selection)
+    elseif button == "x" then
+        if test_suite\modules![selection].stop then
+            test_suite\modules![selection]\stop!
